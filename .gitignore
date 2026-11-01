@@ -1,0 +1,30 @@
+# 密钥和本地配置：绝对不能提交
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+
+# 本地数据和运行产物
+*.db
+*.sqlite
+*.sql
+*.log
+*.err
+data/
+uploads/
+
+# 打包结果
+*.zip
+
+# 系统
+.DS_Store
+Thumbs.db

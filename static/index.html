@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>电商运营 Agent</title>
+<style>
+:root {
+  --bg: #f5f6f4; --surface: #fff; --ink: #1e2422; --ink-2: #56605c; --ink-3: #828c88; --line: #e2e5e1;
+  --accent: #0f6e63; --accent-soft: #e1f0ed; --good: #1b7a43; --bad: #b3372c; --warn: #99650a; --warn-soft: #fbf1dc;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #161a19; --surface: #1f2423; --ink: #e9ecea; --ink-2: #aeb6b2; --ink-3: #848d89; --line: #333a38;
+    --accent: #4fb8a8; --accent-soft: #1f3733; --good: #5cc088; --bad: #ee8378; --warn: #e0b35c; --warn-soft: #3a2f18;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.6 -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif; }
+h1, h2, h3 { margin: 0; font-weight: 600; line-height: 1.3; }
+h2 { font-size: 20px; margin-bottom: 16px; }
+h3 { font-size: 15px; margin-bottom: 12px; }
+button, input, select, textarea { font: inherit; color: inherit; }
+input, select, textarea { width: 100%; padding: 8px 10px; background: var(--surface); border: 1px solid var(--line); border-radius: 6px; }
+input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+button { padding: 7px 14px; border: 1px solid var(--line); border-radius: 6px; background: var(--surface); cursor: pointer; }
+button:hover { border-color: var(--ink-3); }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--surface); font-weight: 600; }
+button.danger { color: var(--bad); }
+button:disabled { opacity: .55; cursor: wait; }
+.layout { display: grid; grid-template-columns: 180px minmax(0, 1fr); min-height: 100vh; }
+nav { background: var(--surface); border-right: 1px solid var(--line); padding: 20px 12px; display: flex; flex-direction: column; gap: 2px; }
+nav .brand { font-size: 16px; font-weight: 700; padding: 0 10px 16px; }
+nav button { display: block; width: 100%; text-align: left; border: 0; background: none; padding: 8px 10px; color: var(--ink-2); }
+nav button.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+nav .who { margin-top: auto; padding: 12px 10px 0; font-size: 12px; color: var(--ink-3); }
+nav .who button { padding: 0; margin-top: 4px; color: var(--ink-2); text-decoration: underline; }
+main { padding: 28px; max-width: 1180px; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 18px; margin-bottom: 16px; }
+.grid { display: grid; gap: 16px; }
+.g4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.g2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.g3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.grid > .card { margin-bottom: 0; }
+.stack { margin-bottom: 16px; }
+.kpi .label { color: var(--ink-2); font-size: 13px; }
+.kpi .value { font-size: 26px; font-weight: 650; font-variant-numeric: tabular-nums; }
+.kpi .sub { font-size: 12px; color: var(--ink-3); }
+.muted { color: var(--ink-3); font-size: 13px; }
+.notice { background: var(--warn-soft); color: var(--warn); padding: 9px 14px; border-radius: 6px; margin-bottom: 16px; font-size: 13px; }
+.error { color: var(--bad); }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+th, td { padding: 8px 10px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { color: var(--ink-2); font-weight: 500; font-size: 13px; white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+td.num, th.num { text-align: right; }
+.tag { display: inline-block; padding: 0 8px; border-radius: 10px; font-size: 12px; background: var(--bg); color: var(--ink-2); white-space: nowrap; }
+.tag.good { color: var(--good); } .tag.bad { color: var(--bad); } .tag.warn { background: var(--warn-soft); color: var(--warn); }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.field { margin-bottom: 12px; }
+.field label { display: block; font-size: 13px; color: var(--ink-2); margin-bottom: 4px; }
+.tabs { display: flex; gap: 6px; margin-bottom: 12px; flex-wrap: wrap; }
+.tabs button.active { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px; }
+.chips button { font-size: 12.5px; padding: 3px 10px; border-radius: 14px; color: var(--ink-2); }
+.md h1, .md h2, .md h3, .md h4 { font-size: 15px; margin: 14px 0 6px; }
+.md p { margin: 6px 0; } .md ul, .md ol { margin: 6px 0; padding-left: 22px; }
+.md table { margin: 8px 0; } .md code { background: var(--bg); padding: 0 4px; border-radius: 3px; }
+.md blockquote { margin: 6px 0; padding: 4px 12px; border-left: 3px solid var(--line); color: var(--ink-2); }
+details { margin-top: 12px; font-size: 13px; color: var(--ink-2); }
+details pre { white-space: pre-wrap; word-break: break-all; background: var(--bg); padding: 8px; border-radius: 6px; max-height: 240px; overflow: auto; font-size: 12px; }
+.chart { position: relative; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.tooltip { position: absolute; pointer-events: none; background: var(--ink); color: var(--surface); font-size: 12px; padding: 4px 8px; border-radius: 4px; white-space: nowrap; transform: translate(-50%, -115%); display: none; }
+.bar-row { display: grid; grid-template-columns: 74px minmax(0, 1fr) 96px; gap: 10px; align-items: center; padding: 6px 0; font-size: 13px; }
+.bar-track { height: 10px; }
+.bar-fill { height: 100%; background: var(--accent); border-radius: 0 4px 4px 0; min-width: 2px; }
+.bar-value { text-align: right; font-variant-numeric: tabular-nums; color: var(--ink-2); }
+.login { max-width: 340px; margin: 14vh auto; }
+@media (max-width: 372px) { .login { margin: 14vh 16px; } }
+pre.plain { white-space: pre-wrap; margin: 0; font: inherit; }
+@media (max-width: 800px) {
+  .layout { grid-template-columns: minmax(0, 1fr); }
+  nav { flex-direction: row; flex-wrap: wrap; border-right: 0; border-bottom: 1px solid var(--line); padding: 10px 16px; }
+  nav .brand { width: 100%; padding: 0 0 6px; } nav button { width: auto; } nav .who { margin: 0 0 0 auto; padding: 0; }
+  main { padding: 16px; }
+  .g4, .g3, .g2 { grid-template-columns: minmax(0, 1fr); }
+  .g4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const $app = document.getElementById('app');
+const state = { token: null, user: null, page: 'dashboard' };
+try { state.token = sessionStorage.getItem('token'); } catch (e) {}
+
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money = n => '¥' + Number(n).toLocaleString('zh-CN', {maximumFractionDigits: 2});
+const pct = (n, d = 1) => n == null ? '—' : (n * 100).toFixed(d) + '%';
+const when = s => s ? String(s).replace('T', ' ').slice(0, 16) : '—';
+
+async function api(path, options = {}) {
+  const headers = {...(options.headers || {})};
+  if (state.token) headers.Authorization = 'Bearer ' + state.token;
+  let body = options.body;
+  if (body && !(body instanceof FormData)) { headers['Content-Type'] = 'application/json'; body = JSON.stringify(body); }
+  const res = await fetch(path, {...options, headers, body});
+  const data = await res.json().catch(() => ({}));
+  if (res.status === 401 && path !== '/api/auth/login') { logout(); throw new Error('登录已失效'); }
+  if (!res.ok) {
+    const d = data.detail;
+    throw new Error(typeof d === 'string' ? d : Array.isArray(d) ? '输入内容不符合要求：' + d.map(x => x.msg).join('；') : '请求失败（' + res.status + '）');
+  }
+  return data;
+}
+
+function logout() {
+  state.token = null; state.user = null;
+  try { sessionStorage.removeItem('token'); } catch (e) {}
+  render();
+}
+
+// 先转义再替换，模型输出里的 HTML 不会被执行
+function markdown(src) {
+  const inline = t => esc(t).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>').replace(/`([^`]+)`/g, '<code>$1</code>');
+  const lines = String(src || '').split(/\r?\n/);
+  let html = '', list = null;
+  const closeList = () => { if (list) { html += `</${list}>`; list = null; } };
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (/^\s*\|.*\|\s*$/.test(line) && /^\s*\|?[\s:|-]+\|?\s*$/.test(lines[i + 1] || '') && (lines[i + 1] || '').includes('-')) {
+      closeList();
+      const cells = l => l.trim().replace(/^\||\|$/g, '').split('|').map(c => inline(c.trim()));
+      html += '<div class="table-wrap"><table><thead><tr>' + cells(line).map(c => `<th>${c}</th>`).join('') + '</tr></thead><tbody>';
+      i += 2;
+      while (i < lines.length && /^\s*\|.*\|\s*$/.test(lines[i])) { html += '<tr>' + cells(lines[i]).map(c => `<td>${c}</td>`).join('') + '</tr>'; i++; }
+      i--;
+      html += '</tbody></table></div>';
+      continue;
+    }
+    let m;
+    if ((m = line.match(/^(#{1,4})\s+(.*)/))) { closeList(); html += `<h${m[1].length + 1}>${inline(m[2])}</h${m[1].length + 1}>`; }
+    else if ((m = line.match(/^\s*[-*]\s+(.*)/))) { if (list !== 'ul') { closeList(); html += '<ul>'; list = 'ul'; } html += `<li>${inline(m[1])}</li>`; }
+    else if ((m = line.match(/^\s*\d+[.)]\s+(.*)/))) { if (list !== 'ol') { closeList(); html += '<ol>'; list = 'ol'; } html += `<li>${inline(m[1])}</li>`; }
+    else if ((m = line.match(/^\s*>\s?(.*)/))) { closeList(); html += `<blockquote>${inline(m[1])}</blockquote>`; }
+    else if (!line.trim()) { closeList(); }
+    else if (/^-{3,}$/.test(line.trim())) { closeList(); }
+    else { closeList(); html += `<p>${inline(line)}</p>`; }
+  }
+  closeList();
+  return html;
+}
+
+function table(columns, rows, empty = '暂无数据') {
+  if (!rows.length) return `<p class="muted">${empty}</p>`;
+  return '<div class="table-wrap"><table><thead><tr>' +
+    columns.map(c => `<th class="${c.num ? 'num' : ''}">${esc(c.title)}</th>`).join('') + '</tr></thead><tbody>' +
+    rows.map(r => '<tr>' + columns.map(c => `<td class="${c.num ? 'num' : ''}">${c.html ? c.html(r) : esc(c.get(r))}</td>`).join('') + '</tr>').join('') +
+    '</tbody></table></div>';
+}
+
+const canOperate = () => state.user && state.user.role !== 'viewer';
+const PAGES = [
+  ['dashboard', '数据看板'], ['agents', 'Agent 工作台'], ['pricing', '调价审批'], ['marketing', '活动与 A/B'],
+  ['kb', '知识库'], ['import', '数据导入'], ['admin', '系统管理'],
+];
+
+function render() {
+  if (!state.token) return renderLogin();
+  const pages = PAGES.filter(([k]) => (k !== 'admin' || state.user?.role === 'admin') && (k !== 'import' || canOperate()));
+  $app.innerHTML = `<div class="layout"><nav><div class="brand">电商运营 Agent</div>
+    ${pages.map(([k, t]) => `<button data-page="${k}" class="${state.page === k ? 'active' : ''}">${t}</button>`).join('')}
+    <div class="who">${esc(state.user?.username)}（${esc(state.user?.role)}）<br><button id="logout">退出登录</button></div>
+    </nav><main id="main"><p class="muted">加载中…</p></main></div>`;
+  document.querySelectorAll('[data-page]').forEach(b => b.onclick = () => { state.page = b.dataset.page; render(); });
+  document.getElementById('logout').onclick = logout;
+  const main = document.getElementById('main');
+  VIEWS[state.page](main).catch(e => { main.innerHTML = `<p class="error">${esc(e.message)}</p>`; });
+}
+
+function renderLogin(message = '') {
+  $app.innerHTML = `<form class="login card" id="f"><h2>电商运营 Agent</h2>
+    <div class="field"><label for="u">用户名</label><input id="u" autocomplete="username" required></div>
+    <div class="field"><label for="p">密码</label><input id="p" type="password" autocomplete="current-password" required></div>
+    <button class="primary" style="width:100%">登录</button><p class="error" id="err">${esc(message)}</p></form>`;
+  document.getElementById('f').onsubmit = async e => {
+    e.preventDefault();
+    try {
+      const r = await api('/api/auth/login', {method: 'POST', body: {username: u.value, password: p.value}});
+      state.token = r.token; state.user = {username: r.username, role: r.role};
+      try { sessionStorage.setItem('token', r.token); } catch (err) {}
+      render();
+    } catch (err) { document.getElementById('err').textContent = err.message; }
+  };
+}
+
+// 单系列折线：2px 线、淡网格、悬停十字线和提示
+function lineChart(el, points) {
+  if (!points.length) { el.innerHTML = '<p class="muted">暂无数据</p>'; return; }
+  const W = 720, H = 240, L = 58, R = 12, T = 12, B = 26;
+  const peak = Math.max(...points.map(p => p.y)) || 1;
+  const mag = 10 ** Math.floor(Math.log10(peak / 4));
+  const step = [1, 2, 5, 10].map(s => s * mag).find(s => s * 4 >= peak);
+  const max = step * 4;
+  const x = i => L + i * (W - L - R) / Math.max(points.length - 1, 1);
+  const y = v => H - B - v * (H - T - B) / max;
+  const ticks = [0, 1, 2, 3, 4].map(t => t * step);
+  const fmt = v => v >= 10000 ? +(v / 10000).toFixed(1) + '万' : Math.round(v);
+  const labels = [0, Math.floor((points.length - 1) / 2), points.length - 1];
+  el.classList.add('chart');
+  el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="近 90 天销售额折线图">
+    ${ticks.map(t => `<line x1="${L}" x2="${W - R}" y1="${y(t)}" y2="${y(t)}" stroke="var(--line)"/><text x="${L - 8}" y="${y(t) + 4}" text-anchor="end" font-size="11" fill="var(--ink-3)">${fmt(t)}</text>`).join('')}
+    ${labels.map(i => `<text x="${x(i)}" y="${H - 6}" text-anchor="${i === 0 ? 'start' : i === points.length - 1 ? 'end' : 'middle'}" font-size="11" fill="var(--ink-3)">${esc(points[i].x.slice(5))}</text>`).join('')}
+    <polyline fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" points="${points.map((p, i) => `${x(i)},${y(p.y)}`).join(' ')}"/>
+    <line class="cross" y1="${T}" y2="${H - B}" stroke="var(--ink-3)" stroke-dasharray="3 3" visibility="hidden"/>
+    <circle class="dot" r="4" fill="var(--accent)" stroke="var(--surface)" stroke-width="2" visibility="hidden"/>
+    </svg><div class="tooltip"></div>`;
+  const svg = el.querySelector('svg'), cross = el.querySelector('.cross'), dot = el.querySelector('.dot'), tip = el.querySelector('.tooltip');
+  svg.onpointermove = e => {
+    const box = svg.getBoundingClientRect(), scale = W / box.width;
+    const i = Math.max(0, Math.min(points.length - 1, Math.round(((e.clientX - box.left) * scale - L) / (W - L - R) * (points.length - 1))));
+    cross.setAttribute('x1', x(i)); cross.setAttribute('x2', x(i)); cross.setAttribute('visibility', 'visible');
+    dot.setAttribute('cx', x(i)); dot.setAttribute('cy', y(points[i].y)); dot.setAttribute('visibility', 'visible');
+    tip.style.display = 'block'; tip.style.left = x(i) / scale + 'px'; tip.style.top = y(points[i].y) / scale + 'px';
+    tip.textContent = `${points[i].x}  ${money(points[i].y)}`;
+  };
+  svg.onpointerleave = () => { cross.setAttribute('visibility', 'hidden'); dot.setAttribute('visibility', 'hidden'); tip.style.display = 'none'; };
+}
+
+const VIEWS = {
+  async dashboard(main) {
+    const d = await api('/api/dashboard');
+    const change = d.kpi.revenue_change;
+    const maxCat = Math.max(...d.categories.map(c => c.revenue), 1);
+    main.innerHTML = `<h2>数据看板</h2>
+      ${d.demo_data ? '<div class="notice">当前是虚构的示例数据。导入真实数据前，看板和 Agent 的结论都不代表真实经营情况。</div>' : ''}
+      <div class="grid g4 stack">
+        <div class="card kpi"><div class="label">近 30 天销售额</div><div class="value">${money(Math.round(d.kpi.revenue_30d))}</div><div class="sub">环比 ${change == null ? '—' : (change >= 0 ? '+' : '') + pct(change)}</div></div>
+        <div class="card kpi"><div class="label">近 30 天订单数</div><div class="value">${d.kpi.orders_30d.toLocaleString()}</div><div class="sub">数据截至 ${esc(d.as_of)}</div></div>
+        <div class="card kpi"><div class="label">近 30 天毛利率</div><div class="value">${pct(d.kpi.margin_30d)}</div><div class="sub">按当前成本计算</div></div>
+        <div class="card kpi"><div class="label">待审批调价</div><div class="value">${d.kpi.pending_proposals}</div><div class="sub">需要人工确认</div></div>
+      </div>
+      <div class="card"><h3>销售趋势（近 90 天，每日销售额）</h3><div id="trend"></div></div>
+      <div class="grid g2 stack">
+        <div class="card"><h3>品类销售额（近 30 天）</h3>
+          ${d.categories.map(c => `<div class="bar-row" title="毛利率 ${pct(c.margin)}"><span>${esc(c.category)}</span><div class="bar-track"><div class="bar-fill" style="width:${c.revenue / maxCat * 100}%"></div></div><span class="bar-value">${money(Math.round(c.revenue))}</span></div>`).join('') || '<p class="muted">暂无数据</p>'}
+        </div>
+        <div class="card"><h3>Agent 状态</h3>${table([
+          {title: 'Agent', get: a => a.name},
+          {title: '运行', num: 1, get: a => a.runs},
+          {title: '成功率', num: 1, get: a => a.runs ? pct(a.success / a.runs, 0) : '—'},
+          {title: '平均耗时', num: 1, get: a => a.runs ? (a.avg_latency_ms / 1000).toFixed(1) + ' 秒' : '—'},
+          {title: '最近运行', get: a => when(a.last_run)},
+        ], d.agents)}</div>
+      </div>`;
+    lineChart(document.getElementById('trend'), d.trend.map(t => ({x: t.date, y: t.revenue})));
+  },
+
+  async agents(main) {
+    const AGENT_TABS = [
+      ['auto', '自动分配', ['本周有哪些事情最值得优先处理？']],
+      ['selection', '选品', ['下个月应该优先上哪个品类？给出 3 个候选商品', '竞品最近有什么价格动作，需要关注什么？', '分析各品类近 90 天表现，哪些该加码？']],
+      ['pricing', '定价', ['检查所有商品，找出最需要调价的 3 个并说明理由', 'EAR-001 的利润最优价是多少？', '给 KIT-001 提交一条动态调价建议']],
+      ['marketing', '营销', ['为 OUT-002 防晒冰感外套写 3 版商品标题和卖点', '策划一次宠物用品的 5 天促销活动，预算 2 万元', '分析 PET-001 的受众，并给出投放建议']],
+    ];
+    let tab = 'selection';
+    main.innerHTML = `<h2>Agent 工作台</h2>
+      ${canOperate() ? `<div class="card"><div class="tabs" id="tabs"></div>
+        <textarea id="task" rows="3" placeholder="描述你要完成的运营任务" aria-label="任务内容"></textarea>
+        <div class="chips" id="chips"></div>
+        <div class="row" style="margin-top:12px"><button class="primary" id="run">开始执行</button><span class="muted" id="status"></span></div></div>
+        <div id="result"></div>` : '<div class="notice">当前账号是只读权限，只能查看运行记录。</div>'}
+      <div class="card"><h3>运行记录</h3><div id="runs"></div></div>`;
+    const runCard = r => `<div class="card"><div class="row" style="justify-content:space-between"><h3 style="margin:0">${esc(r.agent_name)}</h3>
+      <span class="muted">${(r.latency_ms / 1000).toFixed(1)} 秒 · ${r.tokens} tokens</span></div>
+      ${r.status === 'failed' ? `<p class="error">执行失败：${esc(r.error)}</p>` : `<div class="md">${markdown(r.output)}</div>`}
+      ${r.steps?.length ? `<details><summary>查看工具调用（${r.steps.length} 次）</summary>${r.steps.map(s => `<p><strong>${esc(s.tool)}</strong> ${esc(JSON.stringify(s.args))}</p><pre>${esc(s.result)}</pre>`).join('')}</details>` : ''}</div>`;
+    const loadRuns = async () => {
+      const runs = await api('/api/agents/runs');
+      const el = document.getElementById('runs');
+      el.innerHTML = table([
+        {title: '时间', get: r => when(r.created_at)}, {title: 'Agent', get: r => r.agent_name}, {title: '任务', get: r => r.task},
+        {title: '状态', html: r => `<span class="tag ${r.status === 'success' ? 'good' : 'bad'}">${r.status === 'success' ? '成功' : r.status === 'failed' ? '失败' : '运行中'}</span>`},
+        {title: '', html: r => `<button data-open="${r.id}">查看</button>`},
+      ], runs, '还没有运行记录');
+      el.querySelectorAll('[data-open]').forEach(b => b.onclick = () => {
+        const target = document.getElementById('result') || el;
+        target.innerHTML = runCard(runs.find(r => r.id == b.dataset.open));
+        target.scrollIntoView({behavior: 'smooth', block: 'start'});
+      });
+    };
+    if (canOperate()) {
+      const drawTabs = () => {
+        const [, , examples] = AGENT_TABS.find(t => t[0] === tab);
+        document.getElementById('tabs').innerHTML = AGENT_TABS.map(([k, t]) => `<button data-tab="${k}" class="${k === tab ? 'active' : ''}">${t}</button>`).join('');
+        document.getElementById('chips').innerHTML = examples.map(x => `<button data-ex="${esc(x)}">${esc(x)}</button>`).join('');
+        document.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => { tab = b.dataset.tab; drawTabs(); });
+        document.querySelectorAll('[data-ex]').forEach(b => b.onclick = () => { document.getElementById('task').value = b.dataset.ex; });
+      };
+      drawTabs();
+      document.getElementById('run').onclick = async e => {
+        const task = document.getElementById('task').value.trim();
+        const status = document.getElementById('status');
+        if (task.length < 2) { status.textContent = '请先输入任务'; return; }
+        e.target.disabled = true; status.textContent = 'Agent 正在查询数据和分析，通常需要 1～2 分钟…';
+        try {
+          const r = await api(`/api/agents/${tab}/run`, {method: 'POST', body: {task}});
+          document.getElementById('result').innerHTML = runCard(r);
+          status.textContent = '';
+          await loadRuns();
+        } catch (err) { status.innerHTML = `<span class="error">${esc(err.message)}</span>`; }
+        e.target.disabled = false;
+      };
+    }
+    await loadRuns();
+  },
+
+  async pricing(main) {
+    const [rows, products] = await Promise.all([api('/api/pricing/proposals'), api('/api/products')]);
+    main.innerHTML = `<h2>调价审批</h2>
+      <p class="muted">Agent 只能提交建议。这里批准后才会修改系统内的售价，不会同步到电商平台。</p>
+      <div class="card">${table([
+        {title: '商品', get: r => `${r.sku} ${r.name}`},
+        {title: '现价 → 建议价', num: 1, get: r => `${money(r.old_price)} → ${money(r.new_price)}`},
+        {title: '建议价毛利率', num: 1, get: r => pct((r.new_price - r.cost) / r.new_price)},
+        {title: '理由', get: r => r.reason},
+        {title: '状态', html: r => r.status === 'pending' && canOperate()
+          ? `<div class="row"><button class="primary" data-review="${r.id}" data-ok="1">批准</button><button data-review="${r.id}" data-ok="0">驳回</button></div>`
+          : `<span class="tag ${r.status === 'approved' ? 'good' : r.status === 'rejected' ? 'bad' : 'warn'}">${{pending: '待审批', approved: '已批准', rejected: '已驳回'}[r.status]}</span>${r.reviewed_by ? ` <span class="muted">${esc(r.reviewed_by)}</span>` : ''}`},
+      ], rows, '还没有调价建议。可以在 Agent 工作台让定价 Agent 提交。')}<p class="error" id="err"></p></div>
+      <div class="card"><h3>当前商品价格</h3>${table([
+        {title: 'SKU', get: p => p.sku}, {title: '商品', get: p => p.name}, {title: '品类', get: p => p.category},
+        {title: '成本', num: 1, get: p => money(p.cost)}, {title: '售价', num: 1, get: p => money(p.price)},
+        {title: '毛利率', num: 1, get: p => pct((p.price - p.cost) / p.price)}, {title: '库存', num: 1, get: p => p.stock},
+      ], products)}</div>`;
+    main.querySelectorAll('[data-review]').forEach(b => b.onclick = async () => {
+      try { await api(`/api/pricing/proposals/${b.dataset.review}/review`, {method: 'POST', body: {approve: b.dataset.ok === '1'}}); VIEWS.pricing(main); }
+      catch (e) { document.getElementById('err').textContent = e.message; }
+    });
+  },
+
+  async marketing(main) {
+    const [campaigns, tests] = await Promise.all([api('/api/campaigns'), api('/api/ab-tests')]);
+    main.innerHTML = `<h2>活动与 A/B 测试</h2>
+      <div class="card"><h3>A/B 测试</h3><p class="muted">系统负责记录和计算显著性。曝光和转化要在店铺或投放平台跑完后录入。</p>
+      ${tests.length ? tests.map(t => `<div class="card" style="background:none">
+        <strong>${esc(t.name)}</strong> <span class="tag">${esc(t.conclusion)}</span>${t.p_value != null ? ` <span class="muted">p = ${t.p_value}</span>` : ''}
+        <div class="grid g2" style="margin:10px 0">
+          ${['a', 'b'].map(v => `<div><div class="muted">${v.toUpperCase()} 版：${t[v].conversions}/${t[v].exposures}，转化率 ${pct(t[v].rate, 2)}</div><pre class="plain">${esc(t['variant_' + v])}</pre></div>`).join('')}
+        </div>
+        ${canOperate() ? `<form class="row" data-ab="${t.id}">
+          ${['a_exposures:A 曝光', 'a_conversions:A 转化', 'b_exposures:B 曝光', 'b_conversions:B 转化'].map(x => { const [n, l] = x.split(':'), [v, k] = n.split('_'); return `<input style="width:96px" type="number" min="0" name="${n}" aria-label="${l}" placeholder="${l}" value="${t[v][k]}" required>`; }).join('')}
+          <button>保存数据</button></form><p class="error" data-ab-err="${t.id}"></p>` : ''}
+      </div>`).join('') : '<p class="muted">还没有 A/B 测试。可以让营销 Agent 创建，例如“为 OUT-002 写两版标题并创建 A/B 测试”。</p>'}
+      </div>
+      <div class="card"><h3>活动方案</h3>
+      ${campaigns.map(c => `<details><summary><strong>${esc(c.name)}</strong> · 预算 ${money(c.budget)} · ${when(c.created_at)}</summary><div class="md" style="color:var(--ink)">${markdown(c.plan)}</div></details>`).join('') || '<p class="muted">还没有活动方案。可以让营销 Agent 策划并保存。</p>'}
+      </div>`;
+    main.querySelectorAll('[data-ab]').forEach(f => f.onsubmit = async e => {
+      e.preventDefault();
+      const body = Object.fromEntries([...new FormData(f)].map(([k, v]) => [k, Number(v)]));
+      try { await api(`/api/ab-tests/${f.dataset.ab}/data`, {method: 'PUT', body}); VIEWS.marketing(main); }
+      catch (err) { main.querySelector(`[data-ab-err="${f.dataset.ab}"]`).textContent = err.message; }
+    });
+  },
+
+  async kb(main) {
+    const docs = await api('/api/kb/documents');
+    main.innerHTML = `<h2>知识库</h2>
+      <div class="card"><h3>智能问答</h3>
+        <form id="ask" class="row"><input id="q" style="flex:1;min-width:200px" placeholder="例如：大促活动价有什么要求？" aria-label="问题" required><button class="primary">提问</button></form>
+        <div id="answer"></div></div>
+      <div class="card"><h3>文档</h3>
+        ${canOperate() ? `<form id="up" class="row stack"><input type="file" name="file" accept=".txt,.md" style="flex:1;min-width:200px" aria-label="选择文档" required><button>导入文档</button></form><p class="error" id="uperr"></p>` : ''}
+        ${table([
+          {title: '标题', get: d => d.title}, {title: '片段数', num: 1, get: d => d.chunk_count}, {title: '导入时间', get: d => when(d.created_at)},
+          ...(canOperate() ? [{title: '', html: d => `<button class="danger" data-del="${d.id}" data-title="${esc(d.title)}">删除</button>`}] : []),
+        ], docs, '知识库还是空的')}</div>`;
+    document.getElementById('ask').onsubmit = async e => {
+      e.preventDefault();
+      const out = document.getElementById('answer'), btn = e.target.querySelector('button');
+      btn.disabled = true; out.innerHTML = '<p class="muted">正在检索和生成回答…</p>';
+      try {
+        const r = await api('/api/kb/ask', {method: 'POST', body: {task: document.getElementById('q').value}});
+        out.innerHTML = `<div class="md" style="margin-top:12px">${markdown(r.answer)}</div>` + (r.sources.length ? `<details><summary>引用片段（${r.sources.length}）</summary>${r.sources.map((s, i) => `<p><strong>[${i + 1}] ${esc(s.title)}</strong></p><pre>${esc(s.content)}</pre>`).join('')}</details>` : '');
+      } catch (err) { out.innerHTML = `<p class="error">${esc(err.message)}</p>`; }
+      btn.disabled = false;
+    };
+    const up = document.getElementById('up');
+    if (up) up.onsubmit = async e => {
+      e.preventDefault();
+      try { await api('/api/kb/documents', {method: 'POST', body: new FormData(up)}); VIEWS.kb(main); }
+      catch (err) { document.getElementById('uperr').textContent = err.message; }
+    };
+    main.querySelectorAll('[data-del]').forEach(b => b.onclick = async () => {
+      if (!confirm(`确定删除《${b.dataset.title}》吗？`)) return;
+      await api('/api/kb/documents/' + b.dataset.del, {method: 'DELETE'}); VIEWS.kb(main);
+    });
+  },
+
+  async import(main) {
+    const KINDS = [
+      ['products', '商品（相同 SKU 会更新）', 'sku,name,category,cost,price,stock'],
+      ['orders', '订单', 'sku,quantity,unit_price,order_date,segment,region'],
+      ['competitor_prices', '竞品价格', 'sku,competitor,price,captured_on'],
+      ['market_trends', '市场趋势', 'category,month,search_index,avg_price'],
+      ['candidates', '选品候选', 'name,category,est_cost,est_price,monthly_demand,growth,competitor_count'],
+    ];
+    main.innerHTML = `<h2>数据导入</h2><p class="muted">上传 CSV（UTF-8 或 GBK），第一行是下面列出的英文字段名，顺序不限，多余的列会被忽略。日期格式为 2026-01-31，月份为 2026-01，数字不要带货币符号。任一行有错会整批撤销。先导入商品，再导入订单和竞品价格。除商品外，重复导入同一份文件会重复累加。</p>
+      ${KINDS.map(([k, t, cols]) => `<form class="card" data-import="${k}"><h3>${t}</h3><p class="muted"><code>${cols}</code></p>
+        <div class="row"><input type="file" name="file" accept=".csv" style="flex:1;min-width:200px" aria-label="${t} CSV" required><button>导入</button></div><p class="muted" data-msg></p></form>`).join('')}`;
+    main.querySelectorAll('[data-import]').forEach(f => f.onsubmit = async e => {
+      e.preventDefault();
+      const msg = f.querySelector('[data-msg]');
+      try { const r = await api('/api/import/' + f.dataset.import, {method: 'POST', body: new FormData(f)}); msg.textContent = `已导入 ${r.imported} 行`; msg.className = 'muted'; }
+      catch (err) { msg.textContent = err.message; msg.className = 'error'; }
+    });
+  },
+
+  async admin(main) {
+    const [users, settings, logs] = await Promise.all([api('/api/admin/users'), api('/api/admin/settings'), api('/api/admin/logs')]);
+    const LABELS = {llm_model: '大模型名称', min_margin: '调价最低毛利率（0.10 表示 10%）', max_price_change: '单次调价最大幅度（0.15 表示 15%）', agent_max_steps: 'Agent 每次任务最多工具轮数'};
+    const ROLES = {admin: '管理员', operator: '运营', viewer: '只读'};
+    main.innerHTML = `<h2>系统管理</h2>
+      <div class="grid g2 stack">
+        <div class="card"><h3>用户权限</h3>${table([
+          {title: '用户', get: u => u.username},
+          {title: '角色', html: u => `<select data-role="${u.id}" aria-label="${esc(u.username)} 的角色">${Object.entries(ROLES).map(([k, v]) => `<option value="${k}" ${k === u.role ? 'selected' : ''}>${v}</option>`).join('')}</select>`},
+          {title: '状态', html: u => `<button data-active="${u.id}" data-to="${u.is_active ? 0 : 1}">${u.is_active ? '停用' : '启用'}</button>`},
+        ], users)}
+        <form id="nu" style="margin-top:14px"><h3>新增用户</h3>
+          <div class="field"><input name="username" placeholder="用户名" aria-label="用户名" required minlength="2"></div>
+          <div class="field"><input name="password" type="password" placeholder="密码（至少 8 位）" aria-label="密码" autocomplete="new-password" required minlength="8"></div>
+          <div class="row"><select name="role" style="width:auto" aria-label="角色">${Object.entries(ROLES).map(([k, v]) => `<option value="${k}" ${k === 'operator' ? 'selected' : ''}>${v}</option>`).join('')}</select><button>新增</button></div>
+        </form><p class="error" id="uerr"></p></div>
+        <form class="card" id="cfg"><h3>系统配置</h3>
+          ${Object.entries(LABELS).map(([k, l]) => `<div class="field"><label for="s_${k}">${l}</label><input id="s_${k}" name="${k}" value="${esc(settings[k])}" required></div>`).join('')}
+          <button class="primary">保存配置</button><p class="muted" id="cmsg"></p></form>
+      </div>
+      <div class="card"><h3>操作日志</h3>${table([
+        {title: '时间', get: x => when(x.created_at)}, {title: '用户', get: x => x.username}, {title: '操作', get: x => x.action}, {title: '详情', get: x => x.detail},
+      ], logs)}</div>`;
+    const err = m => { document.getElementById('uerr').textContent = m; };
+    main.querySelectorAll('[data-role]').forEach(s => s.onchange = () => api('/api/admin/users/' + s.dataset.role, {method: 'PATCH', body: {role: s.value}}).then(() => VIEWS.admin(main)).catch(e => { err(e.message); }));
+    main.querySelectorAll('[data-active]').forEach(b => b.onclick = () => api('/api/admin/users/' + b.dataset.active, {method: 'PATCH', body: {is_active: b.dataset.to === '1'}}).then(() => VIEWS.admin(main)).catch(e => { err(e.message); }));
+    document.getElementById('nu').onsubmit = e => { e.preventDefault(); api('/api/admin/users', {method: 'POST', body: Object.fromEntries(new FormData(e.target))}).then(() => VIEWS.admin(main)).catch(x => { err(x.message); }); };
+    document.getElementById('cfg').onsubmit = e => {
+      e.preventDefault();
+      const msg = document.getElementById('cmsg');
+      api('/api/admin/settings', {method: 'PUT', body: {values: Object.fromEntries(new FormData(e.target))}}).then(() => { msg.textContent = '已保存'; msg.className = 'muted'; }).catch(x => { msg.textContent = x.message; msg.className = 'error'; });
+    };
+  },
+};
+
+(async () => {
+  if (!state.token) return render();
+  try { state.user = await api('/api/me'); render(); } catch (e) { if (state.token) logout(); }
+})();
+</script>
+</body>
+</html>
